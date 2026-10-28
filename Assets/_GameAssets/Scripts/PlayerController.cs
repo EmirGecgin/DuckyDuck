@@ -10,20 +10,22 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float jumpResetTime = 1f;
     [SerializeField] private float playerHeight = 1f;
     [SerializeField] private LayerMask groundLayer = default;
+    [SerializeField] private KeyCode slideKey = KeyCode.Q;
+    [SerializeField] private KeyCode resetSlideKey = KeyCode.E;
+    [SerializeField] private float slideSpeedMultiplier = 2f;
+    [SerializeField] private float slideDrag = 1f;
     private Rigidbody playerRigidbody;
     private float horizontalInput, verticalInput;
     private Vector3 moveDirection;
+    private float normalDrag;
+    private bool isSliding = false;
 
     void Awake()
     {
         playerRigidbody = gameObject.GetComponent<Rigidbody>();
         playerRigidbody.freezeRotation = true;
+        normalDrag = playerRigidbody.linearDamping;
     }
-    void Start()
-    {
-        
-    }
-
     void Update()
     {
         GetInput();
@@ -33,6 +35,14 @@ public class PlayerController : MonoBehaviour
             Jump();
             Invoke("ResetJump", jumpResetTime);
 
+        }
+        else if (Input.GetKeyDown(slideKey) && !isSliding)
+        {
+            StartSlide();
+        }
+        else if (Input.GetKeyDown(resetSlideKey) && isSliding)
+        {
+            ResetSlide();
         }
     }
     void FixedUpdate()
@@ -63,5 +73,17 @@ public class PlayerController : MonoBehaviour
     bool IsGrounded()
     {
         return Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, groundLayer);
+    }
+    void StartSlide()
+    {
+        isSliding = true;
+        moveSpeed *= slideSpeedMultiplier;
+        playerRigidbody.linearDamping = slideDrag;
+    }
+    void ResetSlide()
+    {
+        isSliding = false;
+        moveSpeed /= slideSpeedMultiplier;
+        playerRigidbody.linearDamping = normalDrag;
     }
 }
